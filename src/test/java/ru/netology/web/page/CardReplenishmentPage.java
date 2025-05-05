@@ -9,10 +9,10 @@ import static com.codeborne.selenide.Selenide.$;
 
 public class CardReplenishmentPage {
     private SelenideElement cardReplenishmentHeader = $("h1");
-    private SelenideElement amountField = $("[data-test-id='amount'] input");  //поле ввод суммы
-    private SelenideElement payFromField = $("[data-test-id='from'] input"); //поле откуда-номер карты
-    private SelenideElement replenishmentButton = $("[data-test-id='action-transfer']");//кнопка пополнить
-    private SelenideElement cancelButton = $("[data-test-id='action-cancel'] button");// кноапка отмена
+    private SelenideElement amountField = $("[data-test-id='amount'] input");  // Поле ввода суммы
+    private SelenideElement payFromField = $("[data-test-id='from'] input"); // Поле "откуда" - номер карты
+    private SelenideElement replenishmentButton = $("[data-test-id='action-transfer']"); // Кнопка пополнить
+    private SelenideElement cancelButton = $("[data-test-id='action-cancel']"); // Кнопка отмена
 
     private DataHelper.CardInfo cardFrom;
     private String amount;
@@ -20,33 +20,34 @@ public class CardReplenishmentPage {
     public CardReplenishmentPage(DataHelper.CardInfo cardFrom, String amount) {
         this.cardFrom = cardFrom;
         this.amount = amount;
-        this.cardReplenishmentHeader.should(Condition.exactText("Пополнение карты"));// Проверяем, что заголовок страницы "Личный кабинет" и видим
-        this.cardReplenishmentHeader.shouldBe(Condition.visible);
+        cardReplenishmentHeader.shouldHave(Condition.exactText("Пополнение карты")).shouldBe(Condition.visible); // Проверяем заголовок
     }
 
-    public CardReplenishmentPage() {
-    }
-
-    public void fillFromCard(DataHelper.CardInfo otherCard) {// Метод для заполнения поля "откуда" другой картой
-        payFromField.setValue(otherCard.getNumber());
+    public void fillFromCard(DataHelper.CardInfo otherCard) { // Метод для заполнения поля "откуда" другой картой
+        payFromField.shouldBe(Condition.visible).setValue(otherCard.getNumber());
     }
 
     public void transferFunds() {
-        amountField.setValue(amount);
-        replenishmentButton.click();
+        amountField.shouldBe(Condition.visible).setValue(amount); // Убедитесь, что поле видно перед вводом
+        replenishmentButton.shouldBe(Condition.visible).click(); // Нажимаем кнопку "Перевести"
     }
 
     public void clearFromCardField() {
-        // Очистка поля через комбинацию клавиш Ctrl+A и Backspace
-        payFromField.sendKeys(Keys.chord(Keys.CONTROL, "a")); // Выделяем все
-        payFromField.sendKeys(Keys.BACK_SPACE); // Удаляем выделенное
+        payFromField.shouldBe(Condition.visible); // Убедитесь, что поле видно перед очисткой
+        payFromField.sendKeys(Keys.chord(Keys.CONTROL, "a"), Keys.BACK_SPACE); // Очистка поля
     }
 
     public void clearAmountField() {
-        // Очистка поля через комбинацию клавиш Ctrl+A и Backspace
-        amountField.sendKeys(Keys.chord(Keys.CONTROL, "a")); // Выделяем все
-        amountField.sendKeys(Keys.BACK_SPACE); // Удаляем выделенное
+        amountField.shouldBe(Condition.visible); // Убедитесь, что поле видно перед очисткой
+        amountField.sendKeys(Keys.chord(Keys.CONTROL, "a"), Keys.BACK_SPACE); // Очистка поля
     }
 
+    public void clickCancelButton() {
+        cancelButton.shouldBe(Condition.visible).click(); // Ждем, пока кнопка станет видимой, и затем нажимаем
+    }
+
+    public void fillAmount(String amount) {
+        amountField.shouldBe(Condition.visible).setValue(amount); // Убедитесь, что поле видно перед вводом
+    }
 }
 

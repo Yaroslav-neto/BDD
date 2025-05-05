@@ -20,7 +20,7 @@ public class DashBoardPage {
     public int getCardBalance(DataHelper.CardInfo cardInfo) {
         var cardElement = getCardInfo(cardInfo);
         if (!cardElement.exists()) {
-            throw new IllegalStateException("Card element not found for id: " + cardInfo.getTestId());
+            throw new IllegalStateException("Карта не найдена: " + cardInfo.getTestId());
         }
         return extractBalance(cardElement.getText());
     }

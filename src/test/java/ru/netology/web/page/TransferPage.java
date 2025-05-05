@@ -4,8 +4,6 @@ import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
 import ru.netology.web.data.DataHelper;
 
-import static com.codeborne.selenide.Condition.enabled;
-import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.$;
 
 public class TransferPage {
@@ -17,11 +15,19 @@ public class TransferPage {
     }
 
     public void clickReload() {
-        reloadButton.shouldBe(visible, enabled).click();
+        reloadButton.shouldBe(Condition.visible, Condition.enabled).click();
     }
 
     public TransferPage() {
         transferHeader.should(Condition.exactText("Ваши карты"));
         transferHeader.shouldBe(Condition.visible);
+    }
+
+    // Добавим геттеры для теста
+    public SelenideElement getTransferHeader() {
+        return transferHeader;
+    }
+    public SelenideElement getReloadButton() {
+        return reloadButton;
     }
 }

@@ -8,18 +8,16 @@ import ru.netology.web.data.DataHelper;
 import static com.codeborne.selenide.Selenide.$;
 
 public class TransferPage {
-    private SelenideElement transferHeader = $("h1");
-    private SelenideElement reloadButton = $("[data-test-id='action-reload']");
+    private SelenideElement transferHeader = $("h1");//"Ваши карты"
+
 
     // пополнение карты
-    private SelenideElement cardReplenishmentHeader = $("h1");
-    private SelenideElement amountField = $("[data-test-id='amount'] input");
-    private SelenideElement payFromField = $("[data-test-id='from'] input");
-    private SelenideElement replenishmentButton = $("[data-test-id='action-transfer']");
-    private SelenideElement cancelButton = $("[data-test-id='action-cancel']");
+    private SelenideElement cardReplenishmentHeader = $("h1");//"Пополнение карты"
+    private SelenideElement amountField = $("[data-test-id='amount'] input");//поле ввода суммы
+    private SelenideElement payFromField = $("[data-test-id='from'] input");//поле ввода номера карты отправителя
+    private SelenideElement replenishmentButton = $("[data-test-id='action-transfer']");//кнопка "Перевести"
+    private SelenideElement cancelButton = $("[data-test-id='action-cancel']");//кнопка "Отмена"
 
-    private DataHelper.CardInfo cardFrom;
-    private String amount;
 
     // основной сценарий
     public TransferPage() {
@@ -27,80 +25,42 @@ public class TransferPage {
         transferHeader.shouldBe(Condition.visible); // Проверка, что элемент видим
     }
 
-    // сценарий пополнения
-    public TransferPage(DataHelper.CardInfo cardFrom, String amount) {
-        this.cardFrom = cardFrom;
-        this.amount = amount;
-
+    // сценарий запополнения(номер карты отправителя и суммы)
+    public TransferPage(DataHelper.CardInfo cardInfo, String amount) {
+        fillAmount(amount);
+        fillFromCard(cardInfo);
         // Проверка, что на странице заголовок "Пополнение карты"
         cardReplenishmentHeader.shouldHave(Condition.exactText("Пополнение карты"))
                 .shouldBe(Condition.visible);
     }
 
-    // Статический метод для пополнения карты
-    public static void replenishCard(DataHelper.CardInfo cardInfo) {
-        $("[data-test-id='" + cardInfo.getTestId() + "'] button").click();
-    }
-
-    // Метод для обновления страницы
-    public void clickReload() {
-        reloadButton.shouldBe(Condition.visible, Condition.enabled).click();
-    }
-
-    // Геттеры для тестов
-    public SelenideElement getTransferHeader() {
-        return transferHeader;
-    }
-
-    public SelenideElement getReloadButton() {
-        return reloadButton.shouldBe(Condition.visible);
-    }
-
-    // Методы для процессов пополнения
-
-    /**
-     * Заполняет поле 'откуда' другой картой
-     */
-    public void fillFromCard(DataHelper.CardInfo otherCard) {
+    public void fillFromCard(DataHelper.CardInfo otherCard) {// заполнает поле с номером карты
         clearFromCardField();
         payFromField.shouldBe(Condition.visible).setValue(otherCard.getNumber());
     }
 
-    /**
-     * Выполняет перевод (нажимает кнопку "Пополнить")
-     */
-    public void transferFunds() {
+    public void fillAmount(String amount) {//заполнение поля с суммой
+        clearAmountField();
+        amountField.shouldBe(Condition.visible).setValue(amount);
+    }
+
+    public void transferFunds() {//кнопка "перевести"
         replenishmentButton.shouldBe(Condition.visible).click();
     }
 
-    /**
-     * Очищает поле "откуда"
-     */
-    public void clearFromCardField() {
+    public void clearFromCardField() {//очистка поля ввода номера карты
         payFromField.shouldBe(Condition.visible);
         payFromField.sendKeys(Keys.chord(Keys.CONTROL, "a"), Keys.BACK_SPACE);
     }
 
-    /**
-     * Очищает поле суммы
-     */
-    public void clearAmountField() {
+    public void clearAmountField() {//очистка поля ввода суммы
         amountField.shouldBe(Condition.visible);
         amountField.sendKeys(Keys.chord(Keys.CONTROL, "a"), Keys.BACK_SPACE);
     }
 
-    /**
-     * Нажимает кнопку "Отмена"
-     */
-    public void clickCancelButton() {
+    public void clickCancelButton() {//нажимаем кнопку отмена
         cancelButton.shouldBe(Condition.visible).click();
     }
 
-    /**
-     * Заполняет поле суммы
-     */
-    public void fillAmount(String amount) {
-        clearAmountField();
-        amountField.shouldBe(Condition.visible).setValue(amount);
-    }
+
 }

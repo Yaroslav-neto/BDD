@@ -1,7 +1,5 @@
 package ru.netology.web.test;
 
-
-import com.codeborne.selenide.Condition;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -9,7 +7,6 @@ import ru.netology.web.data.DataHelper;
 import ru.netology.web.page.DashBoardPage;
 import ru.netology.web.page.LoginPage;
 import ru.netology.web.page.TransferPage;
-
 
 import static com.codeborne.selenide.Selenide.open;
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -52,17 +49,13 @@ public class MoneyTransferTest {
 
         if (diffFirst > 0) {
             // Переводим с первой карты, если баланс вырос
-            TransferPage.replenishCard(DataHelper.getSecondCardInfo()); //нажать кнопку какую какую пополняем
-
-            TransferPage transferPage = new TransferPage(DataHelper.getSecondCardInfo(), String.valueOf(diffFirst));
-
-            transferPage.fillFromCard(DataHelper.getFirstCardInfo());
+            dashBoardPage.replenishCard(DataHelper.getSecondCardInfo()); //нажать кнопку какую какую пополняем
+            TransferPage transferPage = new TransferPage(DataHelper.getFirstCardInfo(), String.valueOf(diffFirst));
             transferPage.transferFunds();
         } else if (diffSecond > 0) {
-            TransferPage.replenishCard(DataHelper.getFirstCardInfo());
             // Переводим со второй, если баланс вырос
+            dashBoardPage.replenishCard(DataHelper.getFirstCardInfo());
             TransferPage transferPage = new TransferPage(DataHelper.getSecondCardInfo(), String.valueOf(diffSecond));
-            transferPage.fillFromCard(DataHelper.getSecondCardInfo());
             transferPage.transferFunds();
 
         }
@@ -73,51 +66,38 @@ public class MoneyTransferTest {
 
     @Test
     void shouldTransferToFirstCardFromSecondCard() {
-        DashBoardPage dashBoardPage = new DashBoardPage();
+//        DashBoardPage dashBoardPage = new DashBoardPage();
+        dashBoardPage.replenishCard(DataHelper.getFirstCardInfo()); // нажимаем пополнить
 
-        var cardFirst = DataHelper.getFirstCardInfo(); // карта, на которую переводим
-        TransferPage.replenishCard(cardFirst); // нажимаем пополнить
-        DataHelper.CardInfo cardFrom = DataHelper.getSecondCardInfo(); // карта "откуда"
         String amountStr = String.valueOf(initialBalanceCardSecond / 10); // сумма для перевода
         int amount = Integer.parseInt(amountStr);
 
-        TransferPage pay = new TransferPage(cardFrom, amountStr);
-        pay.fillFromCard(cardFrom);
-        pay.fillAmount(amountStr);
+        TransferPage pay = new TransferPage(DataHelper.getSecondCardInfo(), amountStr);
         pay.transferFunds();
 
-        pay.clickReload(); // обновляем страницу
+        dashBoardPage.clickReload(); // обновляем страницу
         // Проверка балансов после перевода
         assertAll(
                 () -> assertEquals(initialBalanceCardFirst + amount, dashBoardPage.getCardBalance(DataHelper.getFirstCardInfo()), "Баланс карты-цели после пополнения"),
-                () -> assertEquals(initialBalanceCardSecond - amount, dashBoardPage.getCardBalance(cardFrom), "Баланс карты-откуда после пополнения")
+                () -> assertEquals(initialBalanceCardSecond - amount, dashBoardPage.getCardBalance(DataHelper.getSecondCardInfo()), "Баланс карты-откуда после пополнения")
         );
     }
 
     @Test
     void shouldTransferToSecondCardFromFirstCard() {
-        DashBoardPage dashBoardPage = new DashBoardPage();
-
-        var cardSecond = DataHelper.getSecondCardInfo(); // карта, на которую переводим (вторая)
-        TransferPage.replenishCard(cardSecond); // нажимаем пополнить вторую карту
-
-        DataHelper.CardInfo cardFrom = DataHelper.getFirstCardInfo(); // карта "откуда" (первая)
-
+        dashBoardPage.replenishCard(DataHelper.getSecondCardInfo()); // нажимаем пополнить вторую карту
         String amountStr = String.valueOf(initialBalanceCardFirst / 20); // сумма для перевода
         int amount = Integer.parseInt(amountStr);
 
-        TransferPage pay = new TransferPage(cardFrom, amountStr);
-        pay.fillFromCard(cardFrom);
-        pay.fillAmount(amountStr);
+        TransferPage pay = new TransferPage(DataHelper.getFirstCardInfo(), amountStr);
         pay.transferFunds();
-
-        pay.clickReload(); // обновляем страницу
+        dashBoardPage.clickReload(); // обновляем страницу
 
         // Проверка балансов после перевода
         assertAll(
                 () -> assertEquals(initialBalanceCardSecond + amount, dashBoardPage.getCardBalance(DataHelper.getSecondCardInfo()), "Баланс второй карты после пополнения"),
-                () -> assertEquals(initialBalanceCardFirst - amount, dashBoardPage.getCardBalance(cardFrom), "Баланс первой карты после пополнения")
-        );
+                () -> assertEquals(initialBalanceCardFirst - amount, dashBoardPage.getCardBalance((DataHelper.getFirstCardInfo())), "Баланс первой карты после пополнения"));
+
     }
 
 }

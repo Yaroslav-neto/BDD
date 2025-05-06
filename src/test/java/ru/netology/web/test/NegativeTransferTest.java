@@ -47,20 +47,17 @@ public class NegativeTransferTest {
 
         if (diffFirst > 0) {
             // Переводим с первой карты, если баланс вырос
-            TransferPage.replenishCard(DataHelper.getSecondCardInfo()); //нажать кнопку какую какую пополняем
-
+            dashBoardPage.replenishCard(DataHelper.getSecondCardInfo()); //нажать кнопку какую какую пополняем
             TransferPage transferPage = new TransferPage(DataHelper.getSecondCardInfo(), String.valueOf(diffFirst));
-
-            transferPage.fillFromCard(DataHelper.getFirstCardInfo());
             transferPage.transferFunds();
+
         } else if (diffSecond > 0) {
-            TransferPage.replenishCard(DataHelper.getFirstCardInfo());
+            dashBoardPage.replenishCard(DataHelper.getFirstCardInfo());
             // Переводим со второй, если баланс вырос
             TransferPage transferPage = new TransferPage(DataHelper.getSecondCardInfo(), String.valueOf(diffSecond));
-            transferPage.fillFromCard(DataHelper.getSecondCardInfo());
             transferPage.transferFunds();
-
         }
+
         assertAll(
                 () -> assertEquals(initialBalanceCardFirst, dashBoardPage.getCardBalance(DataHelper.getFirstCardInfo()), "Баланс первой карты после восстановления"),
                 () -> assertEquals(initialBalanceCardSecond, dashBoardPage.getCardBalance(DataHelper.getSecondCardInfo()), "Баланс второй карты после восстановления"));
@@ -68,17 +65,11 @@ public class NegativeTransferTest {
 
     @Test
     void shoulTransferToFirstCardTestOverInitialBalance() {
-        DashBoardPage dashBoardPage = new DashBoardPage();
-
-        var cardFirst = DataHelper.getFirstCardInfo(); // карта, на которую переводим
-        TransferPage.replenishCard(cardFirst); // нажимаем пополнить
-        DataHelper.CardInfo cardFrom = DataHelper.getSecondCardInfo(); // карта "откуда"
+        dashBoardPage.replenishCard(DataHelper.getFirstCardInfo()); // нажимаем пополнить
         String amountStr = String.valueOf(initialBalanceCardSecond + 10); // сумма больше баланса
         int amount = Integer.parseInt(amountStr);
 
-        TransferPage pay = new TransferPage(cardFrom, amountStr);
-        pay.fillFromCard(cardFrom);
-        pay.fillAmount(amountStr);
+        TransferPage pay = new TransferPage(DataHelper.getSecondCardInfo(), amountStr);
 
         boolean exceptionThrown = false;
 
@@ -98,7 +89,7 @@ public class NegativeTransferTest {
         assertAll(
                 () -> assertEquals(initialBalanceCardFirst, dashBoardPage.getCardBalance(DataHelper.getFirstCardInfo()),
                         "Баланс карты-цели после пополнения"),
-                () -> assertEquals(initialBalanceCardSecond - amount, dashBoardPage.getCardBalance(cardFrom),
+                () -> assertEquals(initialBalanceCardSecond - amount, dashBoardPage.getCardBalance(DataHelper.getSecondCardInfo()),
                         "Баланс карты-откуда после пополнения")
         );
     }

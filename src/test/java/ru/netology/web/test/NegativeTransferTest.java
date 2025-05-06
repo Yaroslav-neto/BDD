@@ -1,57 +1,107 @@
 package ru.netology.web.test;
 
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import ru.netology.web.data.DataHelper;
-import ru.netology.web.page.CardReplenishmentPage;
 import ru.netology.web.page.DashBoardPage;
 import ru.netology.web.page.LoginPage;
 import ru.netology.web.page.TransferPage;
 
 import static com.codeborne.selenide.Selenide.open;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class NegativeTransferTest {
-    @Test
-    void shoulTransferToFirstCardTestOverInitialBalance() {
+    private int initialBalanceCardFirst;
+    private int initialBalanceCardSecond;
+
+    private DashBoardPage dashBoardPage;
+
+
+    @BeforeEach
+    void setUp() {
         open("http://localhost:9999");
         var loginPage = new LoginPage();
-        var authInfo = DataHelper.getAuthInfo();//получаем данные пользователя
-        var verificationPage = loginPage.validLogin(authInfo);//заполняем поля и жмякаем продолжить
-        var verificationCode = DataHelper.getVerificationCodeFor(authInfo);//получаем код
-        verificationPage.validVerify(verificationCode);//вводим код и жмякаем продолжить
+        var authInfo = DataHelper.getAuthInfo();
+        var verificationPage = loginPage.validLogin(authInfo);
+        var verificationCode = DataHelper.getVerificationCodeFor(authInfo);
+        verificationPage.validVerify(verificationCode);
 
-
-        TransferPage page = new TransferPage();
-        var cardTo = DataHelper.getFirstCardInfo();//получаем данные  карты НА КОТОРУЮ ПЕРЕВОДИМ
-        DashBoardPage dashBoardPage = new DashBoardPage();
-        var initialBalanceCardTo = dashBoardPage.getCardBalance(cardTo);//начальный баланс карты To
-        var initialBalanceCardFrom = dashBoardPage.getCardBalance(DataHelper.getOtherCard(cardTo)); //начальный баланс карты From
-
-        TransferPage.replenishCard(cardTo);//нажимаеи пополнить карту
-        DataHelper.CardInfo cardFrom = DataHelper.getOtherCard(cardTo);// Находим карту "откуда" — другую
-
-
-        String amount = String.valueOf(initialBalanceCardFrom + initialBalanceCardFrom / 10);// Создаем страницу, указываем сумму и карты
-        CardReplenishmentPage pay = new CardReplenishmentPage(cardFrom, amount);// Передаем карту "откуда"
-        pay.fillFromCard(cardFrom); // Заполняем поле "откуда" нужной картой
-
-        pay.transferFunds();// Выполняем перевод
-        page.clickReload();//клик обновить
-
-        assertEquals(10000, dashBoardPage.getCardBalance(cardTo));//проверка бананса карты пополнения
-        assertEquals(10000, dashBoardPage.getCardBalance(cardFrom));//проверка бананса карты извлечения
-
-        //обратный перевод
-        TransferPage.replenishCard(cardFrom);//нажимаем кнопку пополнить From
-        DataHelper.CardInfo reverseCardFrom = DataHelper.getOtherCard(cardFrom);// Находим карту "откуда" — другую
-        CardReplenishmentPage reversePay = new CardReplenishmentPage(cardFrom, amount); // Передаем карту "To"
-        reversePay.clearAmountField(); // очищаем поле суммы
-        reversePay.clearFromCardField(); // очищаем поле номера карты
-        reversePay.fillFromCard(reverseCardFrom); // Заполняем поле "откуда" нужной картой
-
-        reversePay.transferFunds(); // Выполняем обратный перевод
-
-        assertEquals(initialBalanceCardTo, dashBoardPage.getCardBalance(cardTo));//проверка бананса карты пополнения
-        assertEquals(initialBalanceCardFrom, dashBoardPage.getCardBalance(cardFrom));//проверка бананса карты извлечения
+        dashBoardPage = new DashBoardPage(); // инициализация
+        //получаем начальный баланс  карт
+        initialBalanceCardFirst = dashBoardPage.getCardBalance(DataHelper.getFirstCardInfo());
+        initialBalanceCardSecond = dashBoardPage.getCardBalance(DataHelper.getSecondCardInfo());
     }
+
+    @AfterEach
+    void tearDown() {
+        //получаем актуальные балансы
+        int balanceFirst = dashBoardPage.getCardBalance(DataHelper.getFirstCardInfo());
+        int balanceSecond = dashBoardPage.getCardBalance(DataHelper.getSecondCardInfo());
+        int totalCurrent = balanceFirst + balanceSecond;
+        int totalInitial = initialBalanceCardFirst + initialBalanceCardSecond;
+        assertEquals(totalInitial, totalCurrent, "Общий баланс изменился после теста!");
+
+        int diffFirst = balanceFirst - initialBalanceCardFirst;
+        int diffSecond = balanceSecond - initialBalanceCardSecond;
+
+        if (diffFirst > 0) {
+            // Переводим с первой карты, если баланс вырос
+            TransferPage.replenishCard(DataHelper.getSecondCardInfo()); //нажать кнопку какую какую пополняем
+
+            TransferPage transferPage = new TransferPage(DataHelper.getSecondCardInfo(), String.valueOf(diffFirst));
+
+            transferPage.fillFromCard(DataHelper.getFirstCardInfo());
+            transferPage.transferFunds();
+        } else if (diffSecond > 0) {
+            TransferPage.replenishCard(DataHelper.getFirstCardInfo());
+            // Переводим со второй, если баланс вырос
+            TransferPage transferPage = new TransferPage(DataHelper.getSecondCardInfo(), String.valueOf(diffSecond));
+            transferPage.fillFromCard(DataHelper.getSecondCardInfo());
+            transferPage.transferFunds();
+
+        }
+        assertAll(
+                () -> assertEquals(initialBalanceCardFirst, dashBoardPage.getCardBalance(DataHelper.getFirstCardInfo()), "Баланс первой карты после восстановления"),
+                () -> assertEquals(initialBalanceCardSecond, dashBoardPage.getCardBalance(DataHelper.getSecondCardInfo()), "Баланс второй карты после восстановления"));
+    }
+
+    @Test
+    void shoulTransferToFirstCardTestOverInitialBalance() {
+        DashBoardPage dashBoardPage = new DashBoardPage();
+
+        var cardFirst = DataHelper.getFirstCardInfo(); // карта, на которую переводим
+        TransferPage.replenishCard(cardFirst); // нажимаем пополнить
+        DataHelper.CardInfo cardFrom = DataHelper.getSecondCardInfo(); // карта "откуда"
+        String amountStr = String.valueOf(initialBalanceCardSecond + 10); // сумма больше баланса
+        int amount = Integer.parseInt(amountStr);
+
+        TransferPage pay = new TransferPage(cardFrom, amountStr);
+        pay.fillFromCard(cardFrom);
+        pay.fillAmount(amountStr);
+
+        boolean exceptionThrown = false;
+
+        try {
+            pay.transferFunds();
+        } catch (RuntimeException e) {
+            exceptionThrown = true;
+
+            assertTrue(e.getMessage().contains("Превышен допустимый баланс"), "Сообщение исключения не соответствует");
+        }
+
+        // Проверяем, выбросилось ли исключение — если нет, то фиксируем ошибку
+        if (!exceptionThrown) {
+            fail("Ожидалось исключение, но оно не было выброшено");
+        }
+
+        assertAll(
+                () -> assertEquals(initialBalanceCardFirst, dashBoardPage.getCardBalance(DataHelper.getFirstCardInfo()),
+                        "Баланс карты-цели после пополнения"),
+                () -> assertEquals(initialBalanceCardSecond - amount, dashBoardPage.getCardBalance(cardFrom),
+                        "Баланс карты-откуда после пополнения")
+        );
+    }
+
 }
+

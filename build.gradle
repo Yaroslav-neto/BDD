@@ -21,6 +21,8 @@ dependencies {
     testCompileOnly 'org.projectlombok:lombok:1.18.36'
     testAnnotationProcessor 'org.projectlombok:lombok:1.18.36'
     testImplementation 'org.slf4j:slf4j-simple:2.0.3'
+//    testImplementation 'io.cucumber:cucumber-junit:7.12.1'
+//    testImplementation 'io.cucumber:cucumber-groovy:7.12.1'
 }
 
 test {

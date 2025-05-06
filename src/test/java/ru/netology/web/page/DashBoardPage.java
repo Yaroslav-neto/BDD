@@ -19,9 +19,6 @@ public class DashBoardPage {
 
     public int getCardBalance(DataHelper.CardInfo cardInfo) {
         var cardElement = getCardInfo(cardInfo);
-        if (!cardElement.exists()) {
-            throw new IllegalStateException("Карта не найдена: " + cardInfo.getTestId());
-        }
         return extractBalance(cardElement.getText());
     }
 
@@ -31,7 +28,6 @@ public class DashBoardPage {
     }
 
     private int extractBalance(String text) {
-        // Оставляем без изменений
         var balanceStart = "баланс: ";
         var balanceFinish = " р.";
         var start = text.indexOf(balanceStart);

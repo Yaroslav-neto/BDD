@@ -3,6 +3,7 @@ package ru.netology.web.test;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.openqa.selenium.By;
 import ru.netology.web.data.DataHelper;
 import ru.netology.web.page.DashBoardPage;
 import ru.netology.web.page.LoginPage;
@@ -25,9 +26,8 @@ public class NegativeTransferTest {
         var authInfo = DataHelper.getAuthInfo();
         var verificationPage = loginPage.validLogin(authInfo);
         var verificationCode = DataHelper.getVerificationCodeFor(authInfo);
-        verificationPage.validVerify(verificationCode);
+        dashBoardPage = verificationPage.validVerify(verificationCode);
 
-        dashBoardPage = new DashBoardPage(); // инициализация
         //получаем начальный баланс  карт
         initialBalanceCardFirst = dashBoardPage.getCardBalance(DataHelper.getFirstCardInfo());
         initialBalanceCardSecond = dashBoardPage.getCardBalance(DataHelper.getSecondCardInfo());
@@ -50,7 +50,7 @@ public class NegativeTransferTest {
             dashBoardPage.replenishCard(DataHelper.getSecondCardInfo()); //нажать кнопку какую какую пополняем
             TransferPage transferPage = new TransferPage();
             transferPage.fillAmount(String.valueOf(diffFirst));
-            transferPage.fillFromCard(DataHelper.getSecondCardInfo());
+            transferPage.fillFromCard(DataHelper.getFirstCardInfo());
             transferPage.transferFunds();
 
         } else if (diffSecond > 0) {
@@ -70,32 +70,19 @@ public class NegativeTransferTest {
     @Test
     void shoulTransferToFirstCardTestOverInitialBalance() {
         dashBoardPage.replenishCard(DataHelper.getFirstCardInfo()); // нажимаем пополнить
-        String amountStr = String.valueOf(initialBalanceCardSecond + 10); // сумма больше баланса
-        int amount = Integer.parseInt(amountStr);
+        int amount = initialBalanceCardSecond + 10;
 
         TransferPage pay = new TransferPage();
-        pay.fillAmount(amountStr);
+        pay.fillAmount(String.valueOf(amount));
         pay.fillFromCard(DataHelper.getSecondCardInfo());
+        pay.transferFunds();
 
-        boolean exceptionThrown = false;
-
-        try {
-            pay.transferFunds();
-        } catch (RuntimeException e) {
-            exceptionThrown = true;
-
-            assertTrue(e.getMessage().contains("Превышен допустимый баланс"), "Сообщение исключения не соответствует");
-        }
-
-        // Проверяем, выбросилось ли исключение — если нет, то фиксируем ошибку
-        if (!exceptionThrown) {
-            fail("Ожидалось исключение, но оно не было выброшено");
-        }
+        pay.popupErrorMessage();
 
         assertAll(
                 () -> assertEquals(initialBalanceCardFirst, dashBoardPage.getCardBalance(DataHelper.getFirstCardInfo()),
                         "Баланс карты-цели после пополнения"),
-                () -> assertEquals(initialBalanceCardSecond - amount, dashBoardPage.getCardBalance(DataHelper.getSecondCardInfo()),
+                () -> assertEquals(initialBalanceCardSecond, dashBoardPage.getCardBalance(DataHelper.getSecondCardInfo()),
                         "Баланс карты-откуда после пополнения")
         );
     }

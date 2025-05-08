@@ -27,10 +27,10 @@ public class MoneyTransferTest {
         var authInfo = DataHelper.getAuthInfo();
         var verificationPage = loginPage.validLogin(authInfo);
         var verificationCode = DataHelper.getVerificationCodeFor(authInfo);
-        verificationPage.validVerify(verificationCode);
+        dashBoardPage = verificationPage.validVerify(verificationCode);
+
 
         //получаем начальный баланс  карт
-        dashBoardPage = new DashBoardPage(); // инициализация
         initialBalanceCardFirst = dashBoardPage.getCardBalance(DataHelper.getFirstCardInfo());
         initialBalanceCardSecond = dashBoardPage.getCardBalance(DataHelper.getSecondCardInfo());
     }
@@ -72,11 +72,10 @@ public class MoneyTransferTest {
     void shouldTransferToFirstCardFromSecondCard() {
         dashBoardPage.replenishCard(DataHelper.getFirstCardInfo()); // нажимаем пополнить
 
-        String amountStr = String.valueOf(initialBalanceCardSecond / 10); // сумма для перевода
-        int amount = Integer.parseInt(amountStr);
+        int amount = initialBalanceCardSecond / 10;// сумма для перевода
 
         TransferPage pay = new TransferPage();
-        pay.fillAmount(amountStr);
+        pay.fillAmount(String.valueOf(amount));
         pay.fillFromCard(DataHelper.getSecondCardInfo());
         pay.transferFunds();
         dashBoardPage.clickReload(); // обновляем страницу
@@ -90,11 +89,10 @@ public class MoneyTransferTest {
     @Test
     void shouldTransferToSecondCardFromFirstCard() {
         dashBoardPage.replenishCard(DataHelper.getSecondCardInfo()); // нажимаем пополнить вторую карту
-        String amountStr = String.valueOf(initialBalanceCardFirst / 20); // сумма для перевода
-        int amount = Integer.parseInt(amountStr);
+        int amount = initialBalanceCardSecond / 20;// сумма для перевода
 
         TransferPage pay = new TransferPage();
-        pay.fillAmount(amountStr);
+        pay.fillAmount(String.valueOf(amount));
         pay.fillFromCard(DataHelper.getFirstCardInfo());
         pay.transferFunds();
         dashBoardPage.clickReload(); // обновляем страницу
@@ -102,6 +100,27 @@ public class MoneyTransferTest {
         assertAll(
                 () -> assertEquals(initialBalanceCardSecond + amount, dashBoardPage.getCardBalance(DataHelper.getSecondCardInfo()), "Баланс второй карты после пополнения"),
                 () -> assertEquals(initialBalanceCardFirst - amount, dashBoardPage.getCardBalance((DataHelper.getFirstCardInfo())), "Баланс первой карты после пополнения"));
+
+    }
+
+    @Test
+    void shouldErrorNonExistenCard() {
+        dashBoardPage.replenishCard(DataHelper.getSecondCardInfo()); // нажимаем пополнить вторую карту
+        int amount = initialBalanceCardSecond / 20;// сумма для перевода
+
+        TransferPage pay = new TransferPage();
+        pay.fillAmount(String.valueOf(amount));
+        var nonExistenCard = new DataHelper.CardInfo("5559 0000 0000 0003", "0f3f5c2a-249e-4c3d-8287-09f7a039391n");
+
+        pay.fillFromCard(nonExistenCard);//используем незарегистрированную карту
+        pay.transferFunds();
+
+        pay.popupErrorMessage();
+        pay.clickCancelButton();
+
+        assertAll(
+                () -> assertEquals(initialBalanceCardSecond, dashBoardPage.getCardBalance(DataHelper.getSecondCardInfo()), "Баланс второй карты после пополнения"),
+                () -> assertEquals(initialBalanceCardFirst, dashBoardPage.getCardBalance((DataHelper.getFirstCardInfo())), "Баланс первой карты после пополнения"));
 
     }
 

@@ -7,7 +7,7 @@ import ru.netology.web.data.DataHelper;
 import static com.codeborne.selenide.Selenide.$;
 
 public class DashBoardPage {
-    private final SelenideElement header = $("[data-test-id=dashboard]");
+    private SelenideElement header = $("[data-test-id=dashboard]");
     private SelenideElement reloadButton = $("[data-test-id='action-reload']");//кнопка "обновить"
 
     public DashBoardPage() {
@@ -21,11 +21,6 @@ public class DashBoardPage {
     public int getCardBalance(DataHelper.CardInfo cardInfo) {
         var cardElement = getCardInfo(cardInfo);
         return extractBalance(cardElement.getText());
-    }
-
-    public TransferPage selectCard(DataHelper.CardInfo cardInfo) {
-        getCardInfo(cardInfo).$("button").click();
-        return new TransferPage();
     }
 
     private int extractBalance(String text) {

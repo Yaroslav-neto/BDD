@@ -10,19 +10,14 @@ import static com.codeborne.selenide.Selenide.$;
 public class TransferPage {
     private SelenideElement transferHeader = $("h1");//"Ваши карты"
 
-
-    // пополнение карты
     private SelenideElement cardReplenishmentHeader = $("h1");//"Пополнение карты"
     private SelenideElement amountField = $("[data-test-id='amount'] input");//поле ввода суммы
     private SelenideElement payFromField = $("[data-test-id='from'] input");//поле ввода номера карты отправителя
     private SelenideElement replenishmentButton = $("[data-test-id='action-transfer']");//кнопка "Перевести"
     private SelenideElement cancelButton = $("[data-test-id='action-cancel']");//кнопка "Отмена"
+    private SelenideElement errorMessage = $("[data-test-id='error-notification']");
 
-    // сценарий запополнения(номер карты отправителя и суммы)
     public TransferPage() {
-//        fillAmount(amount);
-//        fillFromCard(cardInfo);
-        // Проверка, что на странице заголовок "Пополнение карты"
         cardReplenishmentHeader.shouldHave(Condition.exactText("Пополнение карты"))
                 .shouldBe(Condition.visible);
     }
@@ -55,5 +50,8 @@ public class TransferPage {
         cancelButton.shouldBe(Condition.visible).click();
     }
 
-
+    public void popupErrorMessage() {
+        errorMessage.shouldHave(Condition.exactText("Ошибка Ошибка! Произошла ошибка"))
+                .shouldBe(Condition.visible);
+    }
 }

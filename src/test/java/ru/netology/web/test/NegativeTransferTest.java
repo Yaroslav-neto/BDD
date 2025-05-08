@@ -48,13 +48,17 @@ public class NegativeTransferTest {
         if (diffFirst > 0) {
             // Переводим с первой карты, если баланс вырос
             dashBoardPage.replenishCard(DataHelper.getSecondCardInfo()); //нажать кнопку какую какую пополняем
-            TransferPage transferPage = new TransferPage(DataHelper.getSecondCardInfo(), String.valueOf(diffFirst));
+            TransferPage transferPage = new TransferPage();
+            transferPage.fillAmount(String.valueOf(diffFirst));
+            transferPage.fillFromCard(DataHelper.getSecondCardInfo());
             transferPage.transferFunds();
 
         } else if (diffSecond > 0) {
             dashBoardPage.replenishCard(DataHelper.getFirstCardInfo());
             // Переводим со второй, если баланс вырос
-            TransferPage transferPage = new TransferPage(DataHelper.getSecondCardInfo(), String.valueOf(diffSecond));
+            TransferPage transferPage = new TransferPage();
+            transferPage.fillAmount(String.valueOf(diffSecond));
+            transferPage.fillFromCard(DataHelper.getSecondCardInfo());
             transferPage.transferFunds();
         }
 
@@ -69,7 +73,9 @@ public class NegativeTransferTest {
         String amountStr = String.valueOf(initialBalanceCardSecond + 10); // сумма больше баланса
         int amount = Integer.parseInt(amountStr);
 
-        TransferPage pay = new TransferPage(DataHelper.getSecondCardInfo(), amountStr);
+        TransferPage pay = new TransferPage();
+        pay.fillAmount(amountStr);
+        pay.fillFromCard(DataHelper.getSecondCardInfo());
 
         boolean exceptionThrown = false;
 

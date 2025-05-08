@@ -18,17 +18,10 @@ public class TransferPage {
     private SelenideElement replenishmentButton = $("[data-test-id='action-transfer']");//кнопка "Перевести"
     private SelenideElement cancelButton = $("[data-test-id='action-cancel']");//кнопка "Отмена"
 
-
-    // основной сценарий
-    public TransferPage() {
-        transferHeader.shouldHave(Condition.exactText("Ваши карты")); // Проверка на точное совпадение
-        transferHeader.shouldBe(Condition.visible); // Проверка, что элемент видим
-    }
-
     // сценарий запополнения(номер карты отправителя и суммы)
-    public TransferPage(DataHelper.CardInfo cardInfo, String amount) {
-        fillAmount(amount);
-        fillFromCard(cardInfo);
+    public TransferPage() {
+//        fillAmount(amount);
+//        fillFromCard(cardInfo);
         // Проверка, что на странице заголовок "Пополнение карты"
         cardReplenishmentHeader.shouldHave(Condition.exactText("Пополнение карты"))
                 .shouldBe(Condition.visible);
